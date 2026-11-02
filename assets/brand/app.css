@@ -1,0 +1,252 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+html, body, .stApp, .stMarkdown, p, h1, h2, h3, h4, label, [data-testid="stCaption"] {
+  font-family: Inter, Arial, sans-serif !important;
+}
+.stApp {
+  background: #F4F5F6 !important;
+  color: #21252B !important;
+}
+header[data-testid="stHeader"] {
+  background: #ffffff !important;
+  border-bottom: 1px solid #E1E4E8;
+}
+header[data-testid="stHeader"] button {
+  color: #0B534F !important;
+}
+span[data-testid="stIconMaterial"],
+span[data-testid="stHeaderActionElements"] span,
+header [data-testid="stIconMaterial"] {
+  font-family: "Material Symbols Rounded", "Material Symbols Outlined", "Material Icons" !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
+  letter-spacing: normal !important;
+  line-height: 1 !important;
+  display: inline-block !important;
+  color: #0B534F !important;
+}
+footer { visibility: hidden; }
+div[data-testid="stAppDeployButton"],
+.stAppDeployButton,
+div[data-testid="stToolbar"] a[href*="share"],
+.stDeployButton { display: none !important; }
+
+.bcc-hero {
+  background: #fff;
+  border: 1px solid #E1E4E8;
+  border-radius: 16px;
+  padding: 1.1rem 1.4rem 1.2rem 1.4rem;
+  margin-bottom: 1rem;
+  margin-top: 0.35rem;
+  border-top: 4px solid #DCA262;
+}
+.bcc-kicker {
+  color: #0B534F;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 0.25rem 0;
+}
+.bcc-hero h1 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 0.4rem 0;
+  line-height: 1.25;
+}
+.bcc-hero p {
+  color: #545D6D;
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+.bcc-guide,
+.bcc-guide p,
+.bcc-guide li,
+.bcc-guide strong,
+.bcc-guide ol,
+.bcc-guide ul {
+  color: #21252B !important;
+}
+.bcc-guide ol {
+  margin: 0.3rem 0 0.4rem 1.1rem;
+}
+.bcc-guide li {
+  margin-bottom: 0.45rem;
+  line-height: 1.45;
+}
+.bcc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.85rem 0 1.1rem 0;
+}
+.bcc-chip {
+  border-radius: 999px;
+  padding: 0.28rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.chip-bond { background: #D6DCE5; color: #2F3A4A; }
+.chip-stock { background: #E5DED6; color: #4A4138; }
+.chip-fund { background: #DDD8E3; color: #3F3A4A; }
+
+section[data-testid="stSidebar"] {
+  background: #ffffff !important;
+}
+section[data-testid="stSidebar"] > div,
+div[data-testid="stSidebar"],
+div[data-testid="stSidebar"] > div {
+  background: #ffffff !important;
+}
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
+section[data-testid="stSidebar"] [data-testid="stCaption"] {
+  color: #21252B !important;
+}
+section[data-testid="stSidebar"] .stButton button[kind="primary"],
+section[data-testid="stSidebar"] .stButton button[kind="primary"] p,
+section[data-testid="stSidebar"] .stButton button[kind="primary"] span,
+section[data-testid="stSidebar"] .stButton button[kind="primary"] div,
+section[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"],
+section[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] p,
+section[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] span,
+section[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] div {
+  color: #ffffff !important;
+}
+section[data-testid="stSidebar"] [data-testid="stCaption"],
+section[data-testid="stSidebar"] small {
+  color: #545D6D !important;
+}
+.stButton > button[kind="primary"],
+button[data-testid="stBaseButton-primary"] {
+  background: #0B534F !important;
+  border-color: #0B534F !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+.stButton > button[kind="primary"] p,
+.stButton > button[kind="primary"] span,
+.stButton > button[kind="primary"] div,
+button[data-testid="stBaseButton-primary"] p,
+button[data-testid="stBaseButton-primary"] span,
+button[data-testid="stBaseButton-primary"] div {
+  color: #ffffff !important;
+}
+.stButton > button[kind="primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover {
+  background: #35837F !important;
+  border-color: #35837F !important;
+  color: #ffffff !important;
+}
+.stDownloadButton > button {
+  border-color: #0B534F !important;
+  font-weight: 600;
+}
+.stDownloadButton > button[kind="primary"] {
+  background: #0B534F !important;
+  border-color: #0B534F !important;
+  color: #ffffff !important;
+}
+.stDownloadButton > button[kind="primary"]:hover {
+  background: #35837F !important;
+  border-color: #35837F !important;
+  color: #ffffff !important;
+}
+.stDownloadButton > button[kind="primary"] p,
+.stDownloadButton > button[kind="primary"] span,
+.stDownloadButton > button[kind="primary"] div {
+  color: #ffffff !important;
+}
+div[data-testid="stMetric"] {
+  background: #fff;
+  border: 1px solid #E1E4E8;
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+}
+div[data-testid="stFileUploader"] section {
+  border: 1.5px dashed #0B534F;
+  border-radius: 12px;
+  background: #F7FBFA;
+}
+.bcc-empty {
+  background: #fff;
+  border: 1px solid #E1E4E8;
+  border-radius: 16px;
+  padding: 1.4rem 1.5rem;
+  color: #545D6D;
+}
+.bcc-empty p {
+  color: #545D6D !important;
+}
+section[data-testid="stExpander"] {
+  background: #fff !important;
+  border: 1px solid #E1E4E8;
+  border-radius: 12px;
+}
+section[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+  padding-bottom: 0.75rem;
+}
+section[data-testid="stExpander"] p,
+section[data-testid="stExpander"] li,
+section[data-testid="stExpander"] span,
+section[data-testid="stExpander"] [data-testid="stMarkdownContainer"],
+section[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stExpander"] [data-testid="stMarkdownContainer"] li,
+section[data-testid="stExpander"] [data-testid="stMarkdownContainer"] strong {
+  color: #21252B !important;
+}
+hr {
+  border-color: #E1E4E8;
+}
+
+.st-key-redemption-block,
+.st-key-cashflow-block {
+  background: #ffffff !important;
+  border: 1px solid #E1E4E8 !important;
+  border-radius: 16px;
+  padding: 0.45rem 1rem 1rem 1rem;
+  margin: 0.35rem 0 1.75rem 0;
+}
+.block-title {
+  margin: 0.35rem 0 0.55rem 0;
+  padding-bottom: 0.4rem;
+  font-size: 1.55rem !important;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #000000 !important;
+  font-family: Inter, Arial, sans-serif !important;
+}
+[data-testid="stCaption"] {
+  color: #545D6D !important;
+}
+[data-testid="stMetricLabel"],
+[data-testid="stMetricValue"] {
+  color: #21252B !important;
+}
+[data-testid="stMain"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stMain"] h1,
+[data-testid="stMain"] h2,
+[data-testid="stMain"] h3,
+[data-testid="stMain"] label {
+  color: #21252B;
+}
+[data-baseweb="tag"] {
+  background: #0B534F !important;
+}
+[data-baseweb="tag"],
+[data-baseweb="tag"] span {
+  color: #ffffff !important;
+}
+div[data-testid="stRadio"] label,
+div[data-testid="stMultiSelect"] label,
+div[data-testid="stFileUploader"] label {
+  color: #21252B !important;
+}

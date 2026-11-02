@@ -2,9 +2,10 @@ import unittest
 from datetime import date, datetime
 from io import BytesIO
 
+import pandas as pd
 from openpyxl import Workbook
 
-from portfolio import add_months, filter_by_horizon, parse_portfolio
+from portfolio import add_months, cash_events, filter_by_horizon, parse_portfolio
 
 HEADERS = [
     "Тикер",
@@ -121,6 +122,28 @@ def _workbook() -> BytesIO:
     workbook.save(buffer)
     buffer.seek(0)
     return buffer
+
+
+def _cash_row(next_coupon, maturity, payments, rate, face) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "ticker": "BOND",
+                "issuer": "Issuer",
+                "isin": "ISIN",
+                "currency": "KZT",
+                "nominal_amount": face,
+                "coupon": rate,
+                "payments_per_year": payments,
+                "next_coupon": next_coupon,
+                "maturity": maturity,
+                "fx_rate": 2,
+                "report_date": date(2026, 10, 23),
+                "portfolio": "Fund",
+                "label": "Fund",
+            }
+        ]
+    )
 
 
 def _grouped_workbook() -> BytesIO:
@@ -257,6 +280,34 @@ class PortfolioParserTest(unittest.TestCase):
         loose = bonds.loc["KZLOOSE00001"]
         self.assertEqual(loose["nominal_amount"], 30)
         self.assertEqual(loose["nominal_kzt"], 30)
+
+    def test_coupon_on_the_report_date_is_included_and_final_stub_is_shorter(self):
+        regular = _cash_row(
+            next_coupon=date(2026, 10, 23),
+            maturity=date(2027, 4, 23),
+            payments=2,
+            rate=10,
+            face=1_000_000,
+        )
+        regular_events = cash_events(regular, 12)
+        coupons = regular_events.loc[regular_events["kind"] == "купон", "date"].tolist()
+        self.assertEqual(coupons, [date(2026, 10, 23), date(2027, 4, 23)])
+        self.assertEqual(regular_events.loc[regular_events["kind"] == "купон", "amount_ccy"].iloc[0], 50_000)
+        self.assertEqual(regular_events.loc[regular_events["kind"] == "погашение", "amount_ccy"].iloc[0], 1_000_000)
+
+        stub = _cash_row(
+            next_coupon=date(2026, 11, 26),
+            maturity=date(2027, 2, 16),
+            payments=4,
+            rate=25,
+            face=500_000_000,
+        )
+        stub_events = cash_events(stub, None)
+        stub_coupons = stub_events.loc[stub_events["kind"] == "купон"].sort_values("date")
+        self.assertEqual(stub_coupons["date"].tolist(), [date(2026, 11, 26), date(2027, 2, 16)])
+        self.assertEqual(stub_coupons["amount_ccy"].iloc[0], 31_250_000)
+        days = (date(2027, 2, 16) - date(2026, 11, 26)).days
+        self.assertAlmostEqual(stub_coupons["amount_ccy"].iloc[1], 500_000_000 * 0.25 * days / 365)
 
     def test_horizon_from_the_report_date(self):
         self.assertEqual(add_months(date(2026, 10, 23), 6), date(2027, 4, 23))

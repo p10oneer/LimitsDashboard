@@ -62,6 +62,9 @@ COLUMN_FIELDS = {
     "Купонная ставка": "coupon",
     "Дата ближайшей купонной выплаты": "next_coupon",
     "Дата погашения": "maturity",
+    # The prototype spells «выплат» as «вылпат».
+    "Кол-во купонных вылпат в год": "payments_per_year",
+    "Кол-во купонных выплат в год": "payments_per_year",
 }
 
 
@@ -81,6 +84,117 @@ def add_months(day: date, months: int) -> date:
     month = month_index % 12 + 1
     last_day = calendar.monthrange(year, month)[1]
     return date(year, month, min(day.day, last_day))
+
+
+def cash_events(bonds: pd.DataFrame, months: int | None) -> pd.DataFrame:
+    """Future coupon and redemption cash, one row per payment.
+
+    Regular coupons are face × annual rate ÷ payments per year. When the last
+    step does not land on the maturity date, the final coupon is the stub
+    face × rate × days / 365, which matches the file's accrued-interest convention.
+    A payment on the report date is included. Amounts in tenge use the file's FX rate.
+    """
+    columns = [
+        "date",
+        "month",
+        "kind",
+        "currency",
+        "amount_ccy",
+        "amount_kzt",
+        "ticker",
+        "isin",
+        "issuer",
+        "portfolio",
+        "label",
+        "portfolio_order",
+    ]
+    if bonds.empty:
+        return pd.DataFrame(columns=columns)
+    events: list[dict] = []
+    for row in bonds.itertuples(index=False):
+        report = _as_date(getattr(row, "report_date", None))
+        maturity = _as_date(getattr(row, "maturity", None))
+        if report is None or maturity is None or maturity < report:
+            continue
+        end = None if months is None else add_months(report, months)
+        face = getattr(row, "nominal_amount", None)
+        rate = getattr(row, "coupon", None)
+        fx = getattr(row, "fx_rate", None)
+        if face is None or (isinstance(face, float) and math.isnan(face)) or face == 0:
+            continue
+        if fx is None or (isinstance(fx, float) and math.isnan(fx)):
+            continue
+        payments = _payments_per_year(getattr(row, "payments_per_year", None))
+        next_coupon = _as_date(getattr(row, "next_coupon", None))
+        identity = {
+            "currency": getattr(row, "currency", None) or "—",
+            "ticker": getattr(row, "ticker", None) or "—",
+            "isin": getattr(row, "isin", None),
+            "issuer": getattr(row, "issuer", None),
+            "portfolio": getattr(row, "portfolio", ""),
+            "label": getattr(row, "label", ""),
+            "portfolio_order": _portfolio_order(getattr(row, "portfolio_order", 0)),
+        }
+
+        def emit(day: date, kind: str, amount: float) -> None:
+            if day < report or (end is not None and day > end):
+                return
+            events.append(
+                {
+                    **identity,
+                    "date": day,
+                    "month": date(day.year, day.month, 1),
+                    "kind": kind,
+                    "amount_ccy": amount,
+                    "amount_kzt": amount * float(fx),
+                }
+            )
+
+        if payments and rate is not None and not (isinstance(rate, float) and math.isnan(rate)) and next_coupon is not None:
+            step = 12 // payments
+            full = float(face) * float(rate) / 100.0 / payments
+            day = next_coupon
+            last = None
+            while day < maturity:
+                emit(day, "купон", full)
+                last = day
+                day = add_months(day, step)
+            if day == maturity:
+                emit(maturity, "купон", full)
+            elif last is not None and maturity > last:
+                stub = float(face) * float(rate) / 100.0 * (maturity - last).days / 365.0
+                emit(maturity, "купон", stub)
+        emit(maturity, "погашение", float(face))
+    return pd.DataFrame(events, columns=columns)
+
+
+def _portfolio_order(value) -> int:
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return 0
+    return int(value)
+
+
+def _payments_per_year(value) -> int | None:
+    number = value if isinstance(value, (int, float)) else None
+    if number is None or (isinstance(number, float) and math.isnan(number)):
+        return None
+    payments = int(number)
+    if payments in (1, 2, 4) and abs(number - payments) < 1e-6:
+        return payments
+    return None
+
+
+def _as_date(value) -> date | None:
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return None
+    return parsed.date()
 
 
 def filter_by_horizon(
@@ -142,6 +256,7 @@ _SUMMARY_FIELDS = (
     "coupon",
     "next_coupon",
     "maturity",
+    "payments_per_year",
 )
 
 
@@ -337,7 +452,10 @@ def _scan_rows(rows: list[tuple]):
             continue
         if _is_stop_row(row):
             break
-        raw = {field: _at(row, columns[label]) for label, field in COLUMN_FIELDS.items()}
+        raw = {field: None for field in COLUMN_FIELDS.values()}
+        for label, field in COLUMN_FIELDS.items():
+            if label in columns and raw[field] is None:
+                raw[field] = _at(row, columns[label])
         if _row_is_blank(raw):
             blank_run += 1
             if blank_run >= 25:
@@ -367,7 +485,7 @@ def _header_map(row: tuple) -> dict[str, int] | None:
     found: dict[str, int] = {}
     for index, value in enumerate(row):
         label = _clean(value)
-        if label in REQUIRED_COLUMNS and label not in found:
+        if label in COLUMN_FIELDS and label not in found:
             found[label] = index
     if all(name in found for name in REQUIRED_COLUMNS):
         return found
@@ -480,6 +598,7 @@ def _bond_record(raw: dict) -> dict | None:
         "coupon": _parse_number(raw["coupon"]),
         "next_coupon": _parse_date(raw["next_coupon"]),
         "maturity": _parse_date(raw["maturity"]),
+        "payments_per_year": _parse_number(raw.get("payments_per_year")),
         "nominal_unit": _parse_number(raw["nominal"]),
         "grouped": bool(raw.get("grouped")),
     }
@@ -523,6 +642,7 @@ def _aggregate_lots(lots: pd.DataFrame) -> pd.DataFrame:
         "coupon",
         "next_coupon",
         "maturity",
+        "payments_per_year",
     ]
     if lots.empty:
         return pd.DataFrame(columns=columns)
@@ -542,6 +662,7 @@ def _aggregate_lots(lots: pd.DataFrame) -> pd.DataFrame:
             coupon=("coupon", "first"),
             next_coupon=("next_coupon", "first"),
             maturity=("maturity", "first"),
+            payments_per_year=("payments_per_year", "first"),
             nominal_unit=("nominal_unit", "first"),
             grouped=("grouped", "any"),
         )
